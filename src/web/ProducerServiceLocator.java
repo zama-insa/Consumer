@@ -22,7 +22,7 @@ public class ProducerServiceLocator extends org.apache.axis.client.Service imple
     }
 
     // Use to get a proxy class for Producer
-    private java.lang.String Producer_address = "http://localhost:8080/Producer/services/Producer";
+    private java.lang.String Producer_address = "http://localhost:8280/service/ProducerService?wsdl";
 
     public java.lang.String getProducerAddress() {
         return Producer_address;
