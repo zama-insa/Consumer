@@ -8,12 +8,22 @@
 package web;
 
 public class ProducerServiceLocator extends org.apache.axis.client.Service implements web.ProducerService {
-
+	public static String producerName;
     public ProducerServiceLocator() {
     }
 
 
-    public ProducerServiceLocator(org.apache.axis.EngineConfiguration config) {
+    public String getProducerName() {
+		return producerName;
+	}
+
+
+	public void setProducerName(String producerName) {
+		this.producerName = producerName;
+	}
+
+
+	public ProducerServiceLocator(org.apache.axis.EngineConfiguration config) {
         super(config);
     }
 
@@ -22,7 +32,7 @@ public class ProducerServiceLocator extends org.apache.axis.client.Service imple
     }
 
     // Use to get a proxy class for Producer
-    private java.lang.String Producer_address = "http://localhost:8280/service/ProducerService?wsdl";
+    private java.lang.String Producer_address = "http://localhost:8280/service/"+producerName+"?wsdl";
 
     public java.lang.String getProducerAddress() {
         return Producer_address;
