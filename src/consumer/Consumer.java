@@ -140,7 +140,11 @@ public class Consumer {
 			result.orderMessageResults();
 			System.out.println(result.getMessageResults().toString());
 			System.out.println(result.getMessageResults().size());
-				
+			
+			String json = mapper.writeValueAsString(result);
+			jmsUtils.startConnection();
+			jmsUtils.send(json);
+			jmsUtils.stopConnection();
 			//}
 			//System.out.println(result.getTime().toString());
 			
