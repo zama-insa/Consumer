@@ -12,10 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import bean.Flow;
 import bean.MessageResult;
 import bean.Result;
-import bean.Scenario;
 import mq.JMSUtils;
-import web.Producer;
-import web.ProducerProxy;
 import web.ProducerServiceLocator;
 
 public class Consumer {
@@ -154,7 +151,7 @@ public class Consumer {
 		if (properties == null) {
 			properties = new Properties();
 			try {
-				properties.load(Consumer.class.getClassLoader().getResourceAsStream("jndi.properties"));
+				properties.load(Consumer.class.getClassLoader().getResourceAsStream("consumer.properties"));
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
