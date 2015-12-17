@@ -82,18 +82,37 @@ public class Consumer {
 			for(int i= 0; i<poolNumber;i++){
 				consumerruns.get(i).setProcessTime(processTime);
 			}
-			double start = System.currentTimeMillis();
-			double end = start;
+			
+			//Param of Chrono
+			long start = System.currentTimeMillis();
+			long end = start;
+			
+			//Count Message
 			int countMessage = 0;
+			
+			//Sleep to respect Start 
+			try {
+				Thread.sleep(flow.getStart()*1000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			// Start Job
 			while((end-start)<flow.getStop()*1000){
 
 				int i =0;
 			
 				long round = System.currentTimeMillis();
 				long endRound = System.currentTimeMillis();
-				
+				//While for 1 second
 				while((endRound-round)<1000){
+					
+					//Wake Up Frequency Threads
 					if(i<flow.getFrequency()){
+						
+						
+						
 						//Synchronized sur le thread
 						synchronized (pool.get(indexThread)) {
 							//Set Id message
@@ -124,6 +143,7 @@ public class Consumer {
 			//set Consumer
 			result.consumer=1;
 
+			//Verify that every Thread is back to wait State
 			pool.forEach(x->{
 				while(x.getState()!=Thread.State.WAITING){
 					try {
@@ -134,13 +154,18 @@ public class Consumer {
 					}
 				}
 			});
+			
+			
 			System.out.println((end-start));
 			System.out.println("COUNT : " + countg); 
-			//synchronized (result) {
+			
+			//Sort the List of MessageResult
 			result.orderMessageResults();
 			System.out.println(result.getMessageResults().toString());
 			System.out.println(result.getMessageResults().size());
 			
+			
+			//Send back to the queue The list of MessageResult
 			String json = mapper.writeValueAsString(result);
 			jmsUtils.startConnection();
 			jmsUtils.send(json);

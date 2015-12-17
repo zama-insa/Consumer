@@ -32,25 +32,34 @@ public class ConsumerRunning implements Runnable{
 		System.out.println("Thread "+tid+" Start");
 		
 		while(true){
+			
+			//Wait State
 			try {
 				synchronized (Thread.currentThread()) {
 					Thread.currentThread().wait();
 				}
+				
+				//Create a new Message Result
 				MessageResult messageResult = new MessageResult();
+				//Set the message id for the new MessageResult
 				messageResult.setId(messageId);
+				
+				
+				//Create Producer object to do the request 
 				ProducerProxy proxy = new ProducerProxy();
 				Producer producer = proxy.getProducer();
 				System.out.println(tid+ " Waking Up");
 				
+				//Do the request to SOAP producer
 				long start = System.currentTimeMillis();
 				producer.pingpong(processTime);
 				long end = System.currentTimeMillis();
 				
-				//Ajout du temps pour le message Result
+				//ADD time to the Message Result
 				messageResult.setTime(end-start);
 				
 				
-				//Ajout du message Result à la list des Result
+				//Add MessageResult to Result 
 				synchronized (result) {
 						result.getMessageResults().add(messageResult);
 				}
@@ -59,11 +68,14 @@ public class ConsumerRunning implements Runnable{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
+				//If Producer Error
 				if(e instanceof AxisFault){
+						//Create MessageResult
 						MessageResult messageResult = new MessageResult();
+						//Set Time to -1 and message Id
 						messageResult.setTime(-1);
 						messageResult.setId(messageId);
+						//Add MessageResult to Result
 						result.getMessageResults().add(messageResult);
 						e.printStackTrace();
 					//}
