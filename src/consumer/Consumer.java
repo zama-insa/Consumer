@@ -7,6 +7,8 @@ import java.util.Properties;
 
 import javax.jms.JMSException;
 
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bean.Flow;
@@ -17,28 +19,35 @@ import web.ProducerServiceLocator;
 
 public class Consumer {
 
+	//Logger
+	private final static Logger logger = Logger.getLogger(Consumer.class);
 	
+	//Mapper to get Json from object
 	private static ObjectMapper mapper;
+	
+	
 	private static Flow flow = new Flow();
+	
 	private static Properties properties;
+	
 	public static void main(String[] args) throws JMSException, IOException{
+		
+		logger.info("Start of the Consumer");
+		
+		
 		properties = getProperties();
 		mapper = new ObjectMapper();
 		
 		
-		//Recuperation instance de jmsUtils
+		//Gather JMS instance
 		JMSUtils jmsUtils = JMSUtils.getInstance();
-
-		System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-		
 		
 		int processTime;
 		Result result = new Result();
 		
-		// Creation et Parametrage du pool de Threads
+		// Create the pool of Threads
 		List<Thread> pool = new ArrayList<Thread>();
 		int poolNumber = Integer.parseInt(getProperties().getProperty("pool.threads"));
-		
 		List<ConsumerRunning> consumerruns = new ArrayList<ConsumerRunning>();
 		for(int i = 0; i<poolNumber; i++){
 			consumerruns.add(new ConsumerRunning(i,result));
@@ -47,57 +56,66 @@ public class Consumer {
 			pool.add(new Thread(consumerruns.get(i)));
 		}
 		
+		logger.info("Creation of "+poolNumber+" Threads");
 		
-		//Start de tout les Threads
+		//Start of every Threads
 		for(Thread t : pool){
 			t.start();
 		}
 		
+		logger.info("Threads Started and in Wait State");
+		
+
 		
 		while (true) {
-			//Start de la connection JMS et attente d'un message
+			//Start of JMS Connection and wait for a new Scenario
 			jmsUtils.startConnection();
 			String message = jmsUtils.receive();
+			
 			jmsUtils.stopConnection();
-			System.out.println(" [x] Received :" + message + "'");
+			
+			logger.info("New Flow received");
 			
 			
-			// Creation du Flow 
+			// Get The flow from Json
 			flow = mapper.readValue(message,Flow.class);
 			
-			//Recuperation du nom du Producer, Parametrage de Producer 
+			//Get the name of the producer
 			ProducerServiceLocator.producerName = flow.getProducer();
 
-			
+			//Get the processTime
 			processTime = (int) flow.getProcessTime();
 			
-			int countg = 0;
+			
 			
 			result.setMessageResults(new ArrayList<MessageResult>());
 	
 			
 			
 			int indexThread = 0;
-			//Parametrage du processTime pour ce job
+			//Set the processTime to all the Sender(ConsummerRunnings)
 			for(int i= 0; i<poolNumber;i++){
 				consumerruns.get(i).setProcessTime(processTime);
 			}
 			
-			//Param of Chrono
+			//Set The Time
 			long start = System.currentTimeMillis();
 			long end = start;
 			
 			//Count Message
 			int countMessage = 0;
 			
+			//Count The total number of messages send
+			int countg = 0;
 			//Sleep to respect Start 
+			logger.info("Start The Job after waiting "+ flow.getStart()+" s");
 			try {
 				Thread.sleep(flow.getStart()*1000);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			
+			logger.info("Job Start");
 			// Start Job
 			while((end-start)<flow.getStop()*1000){
 
@@ -108,7 +126,7 @@ public class Consumer {
 				//While for 1 second
 				while((endRound-round)<1000){
 					
-					//Wake Up Frequency Threads
+					//Wake Up {Frequency} Threads
 					if(i<flow.getFrequency()){
 						
 						
@@ -116,27 +134,23 @@ public class Consumer {
 						//Synchronized sur le thread
 						synchronized (pool.get(indexThread)) {
 							//Set Id message
-							System.out.println(countMessage);
+							//System.out.println(countMessage);
 							consumerruns.get(indexThread).setMessageId(countMessage);
 							countMessage++;
 							//Wake up the Thread
 							pool.get(indexThread).notify();
-							System.out.println("Thread " + indexThread);
 						}
 						
 						//Get the next Thread to waking up
 						indexThread = (indexThread+1)%poolNumber;
-						
+						i++;
 					}
-					i++;
 
 					endRound = System.currentTimeMillis();
+					
 				}
-				System.out.println("Round "+countg);
-
+				logger.info(i+" Message Send for this second");
 				++countg;
-				//System.out.println("test");
-				//System.out.println(end-start);
 				end = System.currentTimeMillis();
 			}
 			
@@ -155,14 +169,12 @@ public class Consumer {
 				}
 			});
 			
-			
-			System.out.println((end-start));
-			System.out.println("COUNT : " + countg); 
+			logger.info("Job Done, Time:"+(end-start)+" COUNT:"+countg);
 			
 			//Sort the List of MessageResult
 			result.orderMessageResults();
-			System.out.println(result.getMessageResults().toString());
-			System.out.println(result.getMessageResults().size());
+			logger.info("SIZE : " + result.getMessageResults().size());
+			logger.info("Result : "+result.getMessageResults().toString());
 			
 			
 			//Send back to the queue The list of MessageResult
@@ -170,6 +182,7 @@ public class Consumer {
 			jmsUtils.startConnection();
 			jmsUtils.send(json);
 			jmsUtils.stopConnection();
+			logger.info("Result Send");
 			//}
 			//System.out.println(result.getTime().toString());
 			

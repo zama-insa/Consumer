@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import javax.sql.rowset.spi.SyncResolver;
 
 import org.apache.axis.AxisFault;
+import org.apache.log4j.Logger;
 
 import bean.MessageResult;
 import bean.Result;
@@ -20,6 +21,11 @@ public class ConsumerRunning implements Runnable{
 	private int tid;
 	private Result result;
 	private int messageId;
+	
+	private final static Logger logger = Logger.getLogger(ConsumerRunning.class);
+
+	
+	
 	public ConsumerRunning(int tid, Result result) {
 		// TODO Auto-generated constructor stub
 		this.processTime = 0;
@@ -29,7 +35,7 @@ public class ConsumerRunning implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		System.out.println("Thread "+tid+" Start");
+		logger.info("Threads " + tid +" started");
 		
 		while(true){
 			
@@ -48,8 +54,8 @@ public class ConsumerRunning implements Runnable{
 				//Create Producer object to do the request 
 				ProducerProxy proxy = new ProducerProxy();
 				Producer producer = proxy.getProducer();
-				System.out.println(tid+ " Waking Up");
 				
+				logger.info("Thread "+tid+ " Waking Up");
 				//Do the request to SOAP producer
 				long start = System.currentTimeMillis();
 				producer.pingpong(processTime);
@@ -77,7 +83,7 @@ public class ConsumerRunning implements Runnable{
 						messageResult.setId(messageId);
 						//Add MessageResult to Result
 						result.getMessageResults().add(messageResult);
-						e.printStackTrace();
+						//e.printStackTrace();
 					//}
 				}
 				
