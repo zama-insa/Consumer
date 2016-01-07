@@ -27,6 +27,8 @@ public class ProducerSoapBindingStub extends org.apache.axis.client.Stub impleme
         oper.setName("pingpong");
         param = new org.apache.axis.description.ParameterDesc(new javax.xml.namespace.QName("http://web", "processTime"), org.apache.axis.description.ParameterDesc.IN, new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "int"), int.class, false, false);
         oper.addParameter(param);
+        param = new org.apache.axis.description.ParameterDesc(new javax.xml.namespace.QName("http://web", "mot"), org.apache.axis.description.ParameterDesc.IN, new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"), java.lang.String.class, false, false);
+        oper.addParameter(param);
         oper.setReturnType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
         oper.setReturnClass(java.lang.String.class);
         oper.setReturnQName(new javax.xml.namespace.QName("http://web", "pingpongReturn"));
@@ -87,7 +89,7 @@ public class ProducerSoapBindingStub extends org.apache.axis.client.Stub impleme
         }
     }
 
-    public java.lang.String pingpong(int processTime) throws java.rmi.RemoteException {
+    public java.lang.String pingpong(int processTime, java.lang.String mot) throws java.rmi.RemoteException {
         if (super.cachedEndpoint == null) {
             throw new org.apache.axis.NoEndPointException();
         }
@@ -103,7 +105,7 @@ public class ProducerSoapBindingStub extends org.apache.axis.client.Stub impleme
 
         setRequestHeaders(_call);
         setAttachments(_call);
- try {        java.lang.Object _resp = _call.invoke(new java.lang.Object[] {new java.lang.Integer(processTime)});
+ try {        java.lang.Object _resp = _call.invoke(new java.lang.Object[] {new java.lang.Integer(processTime), mot});
 
         if (_resp instanceof java.rmi.RemoteException) {
             throw (java.rmi.RemoteException)_resp;

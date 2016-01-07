@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.jms.JMSException;
 
@@ -29,6 +33,8 @@ public class Consumer {
 	private static Flow flow = new Flow();
 	
 	private static Properties properties;
+	private static int index;
+	static int messageId;
 	
 	public static void main(String[] args) throws JMSException, IOException{
 		
@@ -43,6 +49,9 @@ public class Consumer {
 		JMSUtils jmsUtils = JMSUtils.getInstance();
 		
 		int processTime;
+		
+		int size;
+		
 		Result result = new Result();
 		
 		// Create the pool of Threads
@@ -50,8 +59,9 @@ public class Consumer {
 		int poolNumber = Integer.parseInt(getProperties().getProperty("pool.threads"));
 		List<ConsumerRunning> consumerruns = new ArrayList<ConsumerRunning>();
 		for(int i = 0; i<poolNumber; i++){
-			consumerruns.add(new ConsumerRunning(i,result));
+			consumerruns.add(new ConsumerRunning(result,i));
 		}
+		
 		for (int i=0; i<poolNumber;i++){
 			pool.add(new Thread(consumerruns.get(i)));
 		}
@@ -65,7 +75,7 @@ public class Consumer {
 		
 		logger.info("Threads Started and in Wait State");
 		
-
+		ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolNumber);
 		
 		while (true) {
 			//Start of JMS Connection and wait for a new Scenario
@@ -73,9 +83,11 @@ public class Consumer {
 			String message = jmsUtils.receive();
 			
 			jmsUtils.stopConnection();
-			
 			logger.info("New Flow received");
 			
+			//Set the Global variable to 0
+			messageId = 0;
+			index =0;
 			
 			// Get The flow from Json
 			flow = mapper.readValue(message,Flow.class);
@@ -86,45 +98,29 @@ public class Consumer {
 			//Get the processTime
 			processTime = (int) flow.getProcessTime();
 			
+			//Get The size of the Message
+			size = (int)flow.getMessageLoad();
 			
 			
+			//Create The List of Result
 			result.setMessageResults(new ArrayList<MessageResult>());
-	
+				
 			
 			
-			int indexThread = 0;
 			//Set the processTime to all the Sender(ConsummerRunnings)
 			for(int i= 0; i<poolNumber;i++){
 				consumerruns.get(i).setProcessTime(processTime);
+				consumerruns.get(i).setSize(size);
 			}
+
 			
-			//Set The Time
-			long start = System.currentTimeMillis();
-			long end = start;
-			
-			//Count Message
-			int countMessage = 0;
-			
-			//Count The total number of messages send
-			int countg = 0;
-			//Sleep to respect Start 
-			logger.info("Start The Job after waiting "+ flow.getStart()+" s");
-			try {
-				Thread.sleep(flow.getStart()*1000);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
 			logger.info("Job Start");
 			// Start Job
-			while((end-start)<flow.getStop()*1000){
+			//while((end-start)<flow.getStop()*1000){
 
-				int i =0;
-			
-				long round = System.currentTimeMillis();
-				long endRound = System.currentTimeMillis();
+	
 				//While for 1 second
-				while((endRound-round)<1000){
+				/*while((endRound-round)<1000){
 					
 					//Wake Up {Frequency} Threads
 					if(i<flow.getFrequency()){
@@ -148,17 +144,44 @@ public class Consumer {
 
 					endRound = System.currentTimeMillis();
 					
-				}
-				logger.info(i+" Message Send for this second");
-				++countg;
-				end = System.currentTimeMillis();
+				}*/
+				//send.setMessageId(countg);
+				int period = (int) ((1/flow.getFrequency())*1000);
+				final ScheduledFuture<?> scheduler = scheduledExecutorService.scheduleAtFixedRate(
+					new Runnable (){
+						public void run(){
+							synchronized (pool.get(index)) {
+								consumerruns.get(index).setMessageId(Consumer.messageId);
+								messageId++;
+								logger.info("Index Thread" + index);
+								pool.get(index).notify();
+								index = (index+1)%poolNumber;								
+							}
+
+						}
+				},flow.getStart()*1000, period, TimeUnit.MILLISECONDS);
+				
+				
+				//System.out.println(period);
+				//System.out.println(flow.getStop());
+				
+				
+			scheduledExecutorService.schedule(new Runnable() {
+				public void run() { scheduler.cancel(true); }
+			}, (flow.getStop()*1000), TimeUnit.MILLISECONDS);
+				//System.out.println("TEST");
+			//}
+			try {
+				Thread.sleep((long) (flow.getStop()*1000+flow.getProcessTime()+1000));
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			
 			//set Consumer
-			result.consumer=1;
+			result.setConsumer(Integer.parseInt(getProperties().getProperty("consumer.number")));
 
 			//Verify that every Thread is back to wait State
-			pool.forEach(x->{
+			/*pool.forEach(x->{
 				while(x.getState()!=Thread.State.WAITING){
 					try {
 						Thread.sleep(10);
@@ -167,9 +190,9 @@ public class Consumer {
 						e.printStackTrace();
 					}
 				}
-			});
+			});*/
 			
-			logger.info("Job Done, Time:"+(end-start)+" COUNT:"+countg);
+			logger.info("Job Done");
 			
 			//Sort the List of MessageResult
 			result.orderMessageResults();
@@ -201,6 +224,8 @@ public class Consumer {
 		}
 		return properties;
 	}
+	
+	
 }
 
 

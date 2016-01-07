@@ -4,8 +4,16 @@ import java.util.Collections;
 import java.util.List;
 
 public class Result {
-	public List<MessageResult> messageResults;
-	public int consumer;
+	private List<MessageResult> messageResults;
+	public int getConsumer() {
+		return consumer;
+	}
+
+	public void setConsumer(int consumer) {
+		this.consumer = consumer;
+	}
+
+	private int consumer;
 	synchronized public List<MessageResult> getMessageResults() {
 		
 		return messageResults;

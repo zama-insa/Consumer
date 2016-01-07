@@ -18,25 +18,30 @@ import mq.JMSUtils;
 public class ConsumerRunning implements Runnable{
 	
 	private int processTime;
-	private int tid;
 	private Result result;
 	private int messageId;
+	private int size;
+	private int tid;
 	
 	private final static Logger logger = Logger.getLogger(ConsumerRunning.class);
-
 	
 	
-	public ConsumerRunning(int tid, Result result) {
+	public ConsumerRunning(Result result,int tid) {
 		// TODO Auto-generated constructor stub
-		this.processTime = 0;
-		this.tid = tid;
 		this.result = result;
+		this.tid=tid;
+	}
+	public int getSize() {
+		return size;
+	}
+	public void setSize(int size) {
+		this.size = size;
 	}
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		logger.info("Threads " + tid +" started");
-		
+		logger.info(System.currentTimeMillis()+" Thread "+tid+" Started");
+		String word;
 		while(true){
 			
 			//Wait State
@@ -45,20 +50,25 @@ public class ConsumerRunning implements Runnable{
 					Thread.currentThread().wait();
 				}
 				
+				logger.info("Thread " + tid +" wake up");
 				//Create a new Message Result
 				MessageResult messageResult = new MessageResult();
 				//Set the message id for the new MessageResult
-				messageResult.setId(messageId);
+				messageResult.setId(this.messageId);
 				
 				
 				//Create Producer object to do the request 
 				ProducerProxy proxy = new ProducerProxy();
 				Producer producer = proxy.getProducer();
 				
-				logger.info("Thread "+tid+ " Waking Up");
 				//Do the request to SOAP producer
 				long start = System.currentTimeMillis();
-				producer.pingpong(processTime);
+				
+				word = createWord(size);
+				
+				
+				producer.pingpong(processTime,word);
+				logger.info("Message "+ Consumer.messageId+" send");
 				long end = System.currentTimeMillis();
 				
 				//ADD time to the Message Result
@@ -66,13 +76,12 @@ public class ConsumerRunning implements Runnable{
 				
 				
 				//Add MessageResult to Result 
-				synchronized (result) {
-						result.getMessageResults().add(messageResult);
-				}
+			synchronized (result) {
+					result.getMessageResults().add(messageResult);
+					//logger.info(result.getMessageResults().toString());
+			}
 		
-			}catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
 			} catch (RemoteException e) {
 				//If Producer Error
 				if(e instanceof AxisFault){
@@ -83,10 +92,14 @@ public class ConsumerRunning implements Runnable{
 						messageResult.setId(messageId);
 						//Add MessageResult to Result
 						result.getMessageResults().add(messageResult);
+						//logger.info(result.getMessageResults().toString());
 						//e.printStackTrace();
 					//}
 				}
 				
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		
@@ -99,7 +112,7 @@ public class ConsumerRunning implements Runnable{
 
 	public void setProcessTime(int processTime) {
 		this.processTime = processTime;
-		System.out.println(tid+" NEW Process Time");
+		//System.out.println(" NEW Process Time");
 	}
 	public int getMessageId() {
 		return messageId;
@@ -107,5 +120,14 @@ public class ConsumerRunning implements Runnable{
 	public void setMessageId(int messageId) {
 		this.messageId = messageId;
 	}
+	
+	public String createWord(int size){
+		String result ="";
+		for (int i =1;i<size;i++){
+			result+="z";
+		}
+		return result;
+	}
+	
 	
 }

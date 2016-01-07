@@ -44,10 +44,10 @@ public class ProducerProxy implements web.Producer {
     return producer;
   }
   
-  public java.lang.String pingpong(int processTime) throws java.rmi.RemoteException{
+  public java.lang.String pingpong(int processTime, java.lang.String mot) throws java.rmi.RemoteException{
     if (producer == null)
       _initProducerProxy();
-    return producer.pingpong(processTime);
+    return producer.pingpong(processTime, mot);
   }
   
   

@@ -8,5 +8,5 @@
 package web;
 
 public interface Producer extends java.rmi.Remote {
-    public java.lang.String pingpong(int processTime) throws java.rmi.RemoteException;
+    public java.lang.String pingpong(int processTime, java.lang.String mot) throws java.rmi.RemoteException;
 }

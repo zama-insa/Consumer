@@ -8,9 +8,8 @@
 package web;
 
 public class ProducerServiceLocator extends org.apache.axis.client.Service implements web.ProducerService {
+
 	public static String producerName;
-    public ProducerServiceLocator() {
-    }
 
 
     public String getProducerName() {
@@ -21,9 +20,11 @@ public class ProducerServiceLocator extends org.apache.axis.client.Service imple
 	public void setProducerName(String producerName) {
 		this.producerName = producerName;
 	}
+    public ProducerServiceLocator() {
+    }
 
 
-	public ProducerServiceLocator(org.apache.axis.EngineConfiguration config) {
+    public ProducerServiceLocator(org.apache.axis.EngineConfiguration config) {
         super(config);
     }
 
