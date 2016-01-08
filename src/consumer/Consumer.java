@@ -53,31 +53,27 @@ public class Consumer {
 		int size;
 		
 		Result result = new Result();
+		int poolnumber = (int) properties.get("pool.threads");
+		//create Runnable
+		List<ConsumerRunning> consumerRunning = createConsumerRunnings(poolnumber, result);
 		
 		// Create the pool of Threads
-		List<Thread> pool = new ArrayList<Thread>();
-		int poolNumber = Integer.parseInt(getProperties().getProperty("pool.threads"));
-		List<ConsumerRunning> consumerruns = new ArrayList<ConsumerRunning>();
-		for(int i = 0; i<poolNumber; i++){
-			consumerruns.add(new ConsumerRunning(result,i));
-		}
+		List<Thread> pool = createPoolThread(consumerRunning);
 		
-		for (int i=0; i<poolNumber;i++){
-			pool.add(new Thread(consumerruns.get(i)));
-		}
 		
-		logger.info("Creation of "+poolNumber+" Threads");
+		logger.info("Creation of "+poolnumber+" Threads");
 		
 		//Start of every Threads
-		for(Thread t : pool){
-			t.start();
-		}
+		startThread(pool);
 		
 		logger.info("Threads Started and in Wait State");
 		
-		ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolNumber);
+		
+		//Create Scheduler
+		ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolnumber);
 		
 		while (true) {
+			
 			//Start of JMS Connection and wait for a new Scenario
 			jmsUtils.startConnection();
 			String message = jmsUtils.receive();
@@ -108,58 +104,29 @@ public class Consumer {
 			
 			
 			//Set the processTime to all the Sender(ConsummerRunnings)
-			for(int i= 0; i<poolNumber;i++){
-				consumerruns.get(i).setProcessTime(processTime);
-				consumerruns.get(i).setSize(size);
+			for(int i= 0; i<poolnumber;i++){
+				consumerRunning.get(i).setProcessTime(processTime);
+				consumerRunning.get(i).setSize(size);
 			}
+			
+			
 
 			
 			logger.info("Job Start");
-			// Start Job
-			//while((end-start)<flow.getStop()*1000){
-
-	
-				//While for 1 second
-				/*while((endRound-round)<1000){
-					
-					//Wake Up {Frequency} Threads
-					if(i<flow.getFrequency()){
-						
-						
-						
-						//Synchronized sur le thread
-						synchronized (pool.get(indexThread)) {
-							//Set Id message
-							//System.out.println(countMessage);
-							consumerruns.get(indexThread).setMessageId(countMessage);
-							countMessage++;
-							//Wake up the Thread
-							pool.get(indexThread).notify();
-						}
-						
-						//Get the next Thread to waking up
-						indexThread = (indexThread+1)%poolNumber;
-						i++;
-					}
-
-					endRound = System.currentTimeMillis();
-					
-				}*/
-				//send.setMessageId(countg);
-				int period = (int) ((1/flow.getFrequency())*1000);
-				final ScheduledFuture<?> scheduler = scheduledExecutorService.scheduleAtFixedRate(
+			int period = (int) ((1/flow.getFrequency())*1000);
+			final ScheduledFuture<?> scheduler = scheduledExecutorService.scheduleAtFixedRate(
 					new Runnable (){
 						public void run(){
 							synchronized (pool.get(index)) {
-								consumerruns.get(index).setMessageId(Consumer.messageId);
+								consumerRunning.get(index).setMessageId(Consumer.messageId);
 								messageId++;
 								logger.info("Index Thread" + index);
 								pool.get(index).notify();
-								index = (index+1)%poolNumber;								
+								index = (index+1)%poolnumber;								
 							}
 
-						}
-				},flow.getStart()*1000, period, TimeUnit.MILLISECONDS);
+					}
+			},flow.getStart()*1000, period, TimeUnit.MILLISECONDS);
 				
 				
 				//System.out.println(period);
@@ -177,20 +144,10 @@ public class Consumer {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
 			//set Consumer
 			result.setConsumer(Integer.parseInt(getProperties().getProperty("consumer.number")));
-
-			//Verify that every Thread is back to wait State
-			/*pool.forEach(x->{
-				while(x.getState()!=Thread.State.WAITING){
-					try {
-						Thread.sleep(10);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			});*/
+		
 			
 			logger.info("Job Done");
 			
@@ -225,6 +182,29 @@ public class Consumer {
 		return properties;
 	}
 	
+	public static void  startThread(List<Thread> pool){
+		for(Thread t : pool){
+			t.start();
+		}
+	}
+	
+	public static List<Thread> createPoolThread(List<ConsumerRunning> consummerRunning){
+		List<Thread> pool = new ArrayList<Thread>();
+		for (int i=0; i<consummerRunning.size();i++){
+			pool.add(new Thread(consummerRunning.get(i)));
+		}
+		return pool;
+	}
+	
+	
+	
+	public static List<ConsumerRunning> createConsumerRunnings (int poolnumber,Result result){
+		List<ConsumerRunning> consumerRunnings = new ArrayList<ConsumerRunning> ();
+		for(int i=0;i<poolnumber;i++){
+			consumerRunnings.add(new ConsumerRunning(result, i));
+		}
+		return consumerRunnings;
+	}
 	
 }
 
