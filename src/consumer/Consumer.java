@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,15 +13,17 @@ import java.util.concurrent.TimeUnit;
 
 import javax.jms.JMSException;
 
+import mq.JMSUtils;
+
 import org.apache.log4j.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import web.ProducerServiceLocator;
 import bean.Flow;
 import bean.MessageResult;
 import bean.Result;
-import mq.JMSUtils;
-import web.ProducerServiceLocator;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Consumer {
 
@@ -94,23 +94,15 @@ public class Consumer {
 		
 		
 		//Create Scheduler
-		ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolnumber);
+		//not used anymore
+		//ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolnumber);
 		
 		while (true) {
-			
-			//Start of JMS Connection and wait for a new Scenario
-			jmsUtils.startConnection();
-			String message = jmsUtils.receive();
-			
-			jmsUtils.stopConnection();
-			logger.info("New Flow received");
+			flow=receiveFlow(jmsUtils);
 			
 			//Set the Global variable to 0
 			messageId = 0;
 			index =0;
-			
-			// Get The flow from Json
-			flow = mapper.readValue(message,Flow.class);
 			
 			//Get the name of the producer
 			ProducerServiceLocator.producerName = flow.getProducer();
@@ -132,40 +124,14 @@ public class Consumer {
 				consumerRunning.get(i).setProcessTime(processTime);
 				consumerRunning.get(i).setSize(size);
 			}
-			
-			
-
-			
+					
 			logger.info("Job Start");
-			int period = (int) ((1/flow.getFrequency())*1000);
-			final ScheduledFuture<?> scheduler = scheduledExecutorService.scheduleAtFixedRate(
-					new Runnable (){
-						public void run(){
-							synchronized (pool.get(index)) {
-								consumerRunning.get(index).setMessageId(Consumer.messageId);
-								messageId++;
-								logger.info("Index Thread" + index);
-								pool.get(index).notify();
-								index = (index+1)%poolnumber;								
-							}
-
-					}
-			},flow.getStart()*1000, period, TimeUnit.MILLISECONDS);
-				
-				
-				//System.out.println(period);
-				//System.out.println(flow.getStop());
-				
-				
-			scheduledExecutorService.schedule(new Runnable() {
-				public void run() { scheduler.cancel(true); }
-			}, (flow.getStop()*1000), TimeUnit.MILLISECONDS);
-				//System.out.println("TEST");
-			//}
+			int period = (int) ((1/flow.getFrequency())*1000);	
+			final ScheduledFuture<?> scheduler=scheduleThreads(pool, consumerRunning, period);
+			killThreads(scheduler,flow.getStop());
 			try {
 				Thread.sleep((long) (flow.getStop()*1000+flow.getProcessTime()+1000));
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -190,11 +156,7 @@ public class Consumer {
 			
 			
 			//Send back to the queue The list of MessageResult
-			String json = mapper.writeValueAsString(result);
-			jmsUtils.startConnection();
-			jmsUtils.send(json);
-			jmsUtils.stopConnection();
-			logger.info("Result Send");
+			sendResult(jmsUtils,result);
 			//}
 			//System.out.println(result.getTime().toString());
 			
@@ -238,7 +200,72 @@ public class Consumer {
 		return consumerRunnings;
 	}
 	
+	//added by zakaria,hope it wont break ur code arthur :p
 	
+	public static Flow receiveFlow(JMSUtils jmsUtils){
+		Flow flow=null;
+		try {
+			//Start of JMS Connection and wait for a new Scenario
+			jmsUtils.startConnection();
+			String message = jmsUtils.receive();	
+			jmsUtils.stopConnection();
+			logger.info("New Flow received");
+			// Get The flow from Json
+			flow = mapper.readValue(message,Flow.class);
+		} catch (JMSException | IOException e) {
+			e.printStackTrace();
+		}	
+		return flow;
+	}
+	
+	//added by zakaria,hope it wont break ur code arthur :p
+	public static void sendResult(JMSUtils jmsUtils,Result result){
+		String json;
+		try {
+			json = mapper.writeValueAsString(result);
+			jmsUtils.startConnection();
+			jmsUtils.send(json);
+			jmsUtils.stopConnection();
+			logger.info("Result Send");
+		} catch (JsonProcessingException | JMSException e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	//added by zakaria,hope it wont break ur code arthur :p
+	public static ScheduledFuture<?> scheduleThreads(List<Thread> pool,List<ConsumerRunning> consumerRunning,int period){
+		int poolnumber=pool.size();
+		////???? same scheduleExecutorService for run and cancel? ?????//////	
+		
+		//Create Scheduler
+		ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolnumber);
+		final ScheduledFuture<?> scheduler = scheduledExecutorService.scheduleAtFixedRate(
+				new Runnable (){
+					public void run(){
+						synchronized (pool.get(index)) {
+							consumerRunning.get(index).setMessageId(Consumer.messageId);
+							messageId++;
+							logger.info("Index Thread" + index);
+							pool.get(index).notify();
+							index = (index+1)%poolnumber;								
+						}
+
+				}
+		},flow.getStart()*1000, period, TimeUnit.MILLISECONDS);
+		return scheduler;
+	}
+	
+	
+	//added by zakaria,hope it wont break ur code arthur :p
+	public static void killThreads(final ScheduledFuture<?> scheduler,int stop){
+		//Create Scheduler
+		
+		//following line is like u put : Executors.newScheduledThreadPool(1);
+		ScheduledExecutorService scheduledExecutorService =Executors.newSingleThreadScheduledExecutor();
+		scheduledExecutorService.schedule(new Runnable() {
+			public void run() { scheduler.cancel(true); }
+		}, (stop*1000), TimeUnit.MILLISECONDS);
+	}
 }
 
 
