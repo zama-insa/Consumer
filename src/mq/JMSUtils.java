@@ -92,4 +92,52 @@ public class JMSUtils {
 		return instance;
 		
 	}
+
+	public Connection getConnection() {
+		return connection;
+	}
+
+	public void setConnection(Connection connection) {
+		this.connection = connection;
+	}
+
+	public Session getSession() {
+		return session;
+	}
+
+	public void setSession(Session session) {
+		this.session = session;
+	}
+
+	public MessageConsumer getMsgConsumer() {
+		return msgConsumer;
+	}
+
+	public void setMsgConsumer(MessageConsumer msgConsumer) {
+		this.msgConsumer = msgConsumer;
+	}
+
+	public MessageProducer getMsgProducer() {
+		return msgProducer;
+	}
+
+	public void setMsgProducer(MessageProducer msgProducer) {
+		this.msgProducer = msgProducer;
+	}
+
+	public Topic getTopic() {
+		return topic;
+	}
+
+	public void setTopic(Topic topic) {
+		this.topic = topic;
+	}
+
+	public static void setInstance(JMSUtils instance) {
+		JMSUtils.instance = instance;
+	}
+	
+	
+	
+	
 }
