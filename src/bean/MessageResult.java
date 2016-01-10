@@ -12,6 +12,13 @@ public class MessageResult implements Comparable<MessageResult>{
 	public int getId() {
 		return id;
 	}
+	public MessageResult(long time, int id) {
+		this.time = time;
+		this.id = id;
+	}
+	public MessageResult(){
+		
+	}
 	public void setId(int id) {
 		this.id = id;
 	}

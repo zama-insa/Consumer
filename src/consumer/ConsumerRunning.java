@@ -68,7 +68,7 @@ public class ConsumerRunning implements Runnable{
 				
 				
 				producer.pingpong(processTime,word);
-				logger.info("Message "+ Consumer.messageId+" send");
+				logger.info("Message "+ messageId+" send");
 				long end = System.currentTimeMillis();
 				
 				//ADD time to the Message Result

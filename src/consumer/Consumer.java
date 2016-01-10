@@ -1,8 +1,12 @@
 package consumer;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,7 +40,24 @@ public class Consumer {
 	private static int index;
 	static int messageId;
 	
+	public static void initConsumer(int consumer){
+		String input1 ="java.naming.factory.initial = org.apache.activemq.jndi.ActiveMQInitialContextFactory";
+		String input2 = "java.naming.provider.url = tcp://localhost:6161";
+		String input3 ="queue.TEST.FOO = TEST.FOO";
+		String input4 = "topic.TEST.BAR = Consumer."+consumer;
+		try {
+			FileWriter fw = new FileWriter(new File("resources/jndi.properties"));
+			fw.write(input1+"\n"+input2+"\n"+input3+"\n"+input4);
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) throws JMSException, IOException{
+		
+		
 		
 		logger.info("Start of the Consumer");
 		
@@ -44,7 +65,10 @@ public class Consumer {
 		properties = getProperties();
 		mapper = new ObjectMapper();
 		
+		int consumerNumber = Integer.parseInt(args[0]);
+		int poolnumber =  Integer.parseInt(args[1]);
 		
+		initConsumer(consumerNumber);
 		//Gather JMS instance
 		JMSUtils jmsUtils = JMSUtils.getInstance();
 		
@@ -53,7 +77,7 @@ public class Consumer {
 		int size;
 		
 		Result result = new Result();
-		int poolnumber = (int) properties.get("pool.threads");
+
 		//create Runnable
 		List<ConsumerRunning> consumerRunning = createConsumerRunnings(poolnumber, result);
 		
@@ -146,13 +170,21 @@ public class Consumer {
 			}
 			
 			//set Consumer
-			result.setConsumer(Integer.parseInt(getProperties().getProperty("consumer.number")));
+			result.setConsumer(consumerNumber);
 		
 			
 			logger.info("Job Done");
 			
+			
+			//fill no Data
+			
+			result.fillNoData((int) (flow.getFrequency()*(flow.getStop()-flow.getStart())));
+			
 			//Sort the List of MessageResult
+
+			
 			result.orderMessageResults();
+
 			logger.info("SIZE : " + result.getMessageResults().size());
 			logger.info("Result : "+result.getMessageResults().toString());
 			
@@ -205,6 +237,7 @@ public class Consumer {
 		}
 		return consumerRunnings;
 	}
+	
 	
 }
 
