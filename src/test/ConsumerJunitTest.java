@@ -77,8 +77,9 @@ public class ConsumerJunitTest {
 	@Test
 	public void testStartThread(){
 		List<Thread> pool=new ArrayList<Thread>();
-		for(Thread t:pool){
-			t = Mockito.mock(Thread.class);
+		int poolnumber=5;
+		for(int i=0;i<poolnumber;i++){
+			pool.add(Mockito.mock(Thread.class));
 		}
 		Consumer.startThread(pool);
 		for(Thread t:pool){
