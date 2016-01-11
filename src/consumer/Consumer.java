@@ -234,7 +234,7 @@ public class Consumer {
 	
 	//added by zakaria,hope it wont break ur code arthur :p
 	public static ScheduledFuture<?> scheduleThreads(List<Thread> pool,List<ConsumerRunning> consumerRunning,int period){
-		int poolnumber=pool.size();
+		
 		////???? same scheduleExecutorService for run and cancel? ?????//////	
 		
 		//Create Scheduler
@@ -243,6 +243,7 @@ public class Consumer {
 				new Runnable (){
 					public void run(){
 						synchronized (pool.get(index)) {
+							int poolnumber=pool.size();
 							consumerRunning.get(index).setMessageId(Consumer.messageId);
 							messageId++;
 							logger.info("Index Thread" + index);
