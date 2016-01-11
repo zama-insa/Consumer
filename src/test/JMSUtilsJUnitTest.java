@@ -35,7 +35,7 @@ public class JMSUtilsJUnitTest {
 	}
 	//test receive functionality, to do that i mocked messageConsumer and textMessage
 	@Test
-	public void testReceive() throws Exception{
+	public void testReceive() throws Exception{	
 		MessageConsumer msgConsumer = Mockito.mock(MessageConsumer.class);
 		TextMessage textmessage =  Mockito.mock(TextMessage.class);
 		when(textmessage.getText()).thenReturn("message test");

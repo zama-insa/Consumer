@@ -53,4 +53,19 @@ public class Flow {
 	public void setStop(int stop) {
 		this.stop = stop;
 	}
+	public Flow(){
+		
+	}
+	public Flow(String consumer, String producer, double frequency,
+			int messageLoad, double processTime, int start, int stop) {
+		super();
+		this.consumer = consumer;
+		this.producer = producer;
+		this.frequency = frequency;
+		this.messageLoad = messageLoad;
+		this.processTime = processTime;
+		this.start = start;
+		this.stop = stop;
+	}
+	
 }

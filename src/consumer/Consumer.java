@@ -31,7 +31,7 @@ public class Consumer {
 	private final static Logger logger = Logger.getLogger(Consumer.class);
 	
 	//Mapper to get Json from object
-	private static ObjectMapper mapper;
+	private static ObjectMapper mapper=new ObjectMapper();
 	
 	
 	private static Flow flow = new Flow();
