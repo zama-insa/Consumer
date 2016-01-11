@@ -68,7 +68,10 @@ public class Consumer {
 		int consumerNumber = Integer.parseInt(args[0]);
 		int poolnumber =  Integer.parseInt(args[1]);
 		
+		
 		initConsumer(consumerNumber);
+		
+
 		//Gather JMS instance
 		JMSUtils jmsUtils = JMSUtils.getInstance();
 		
@@ -98,7 +101,11 @@ public class Consumer {
 		//ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolnumber);
 		
 		while (true) {
+			
+			//Wait for the new flow
 			flow=receiveFlow(jmsUtils);
+			
+			
 			
 			//Set the Global variable to 0
 			messageId = 0;
@@ -200,7 +207,6 @@ public class Consumer {
 		return consumerRunnings;
 	}
 	
-	//added by zakaria,hope it wont break ur code arthur :p
 	
 	public static Flow receiveFlow(JMSUtils jmsUtils){
 		Flow flow=null;
@@ -209,7 +215,7 @@ public class Consumer {
 			jmsUtils.startConnection();
 			String message = jmsUtils.receive();	
 			jmsUtils.stopConnection();
-			logger.info("New Flow received");
+			logger.info("New Flow received : " + message );
 			// Get The flow from Json
 			flow = mapper.readValue(message,Flow.class);
 		} catch (JMSException | IOException e) {
@@ -238,7 +244,7 @@ public class Consumer {
 		////???? same scheduleExecutorService for run and cancel? ?????//////	
 		
 		//Create Scheduler
-		ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(poolnumber);
+		ScheduledExecutorService scheduledExecutorService =Executors.newScheduledThreadPool(5);
 		final ScheduledFuture<?> scheduler = scheduledExecutorService.scheduleAtFixedRate(
 				new Runnable (){
 					public void run(){
@@ -246,7 +252,7 @@ public class Consumer {
 							int poolnumber=pool.size();
 							consumerRunning.get(index).setMessageId(Consumer.messageId);
 							messageId++;
-							logger.info("Index Thread" + index);
+							//logger.trace("Index Thread" + index);
 							pool.get(index).notify();
 							index = (index+1)%poolnumber;								
 						}

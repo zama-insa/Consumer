@@ -23,7 +23,7 @@ public class ConsumerRunning implements Runnable{
 	private int size;
 	private int tid;
 	
-	private final static Logger logger = Logger.getLogger(ConsumerRunning.class);
+	private final static Logger logger = Logger.getLogger("debugLogger");
 	
 	
 	public ConsumerRunning(Result result,int tid) {
@@ -40,7 +40,7 @@ public class ConsumerRunning implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		logger.info(System.currentTimeMillis()+" Thread "+tid+" Started");
+		logger.trace(" Thread "+tid+" Started");
 		String word;
 		while(true){
 			
@@ -50,7 +50,7 @@ public class ConsumerRunning implements Runnable{
 					Thread.currentThread().wait();
 				}
 				
-				logger.info("Thread " + tid +" wake up");
+				logger.trace("Thread " + tid +" wake up");
 				//Create a new Message Result
 				MessageResult messageResult = new MessageResult();
 				//Set the message id for the new MessageResult
@@ -68,7 +68,7 @@ public class ConsumerRunning implements Runnable{
 				
 				
 				producer.pingpong(processTime,word);
-				logger.info("Message "+ messageId+" send");
+				logger.trace("Message "+ messageId+" send");
 				long end = System.currentTimeMillis();
 				
 				//ADD time to the Message Result
