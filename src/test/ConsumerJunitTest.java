@@ -86,4 +86,16 @@ public class ConsumerJunitTest {
 			verify(t,times(1)).start();
 		}
 	}
+	
+	@Test
+	public void testDurationJob(){
+		
+	}
+	
+	@Test 
+	public void testNumberResult(){
+		
+	}
+	
+	
 }

@@ -105,42 +105,8 @@ public class Consumer {
 			//Wait for the new flow
 			flow=receiveFlow(jmsUtils);
 			
-			
-			
-			//Set the Global variable to 0
-			messageId = 0;
-			index =0;
-			
-			//Get the name of the producer
-			ProducerServiceLocator.producerName = flow.getProducer();
-
-			//Get the processTime
-			processTime = (int) flow.getProcessTime();
-			
-			//Get The size of the Message
-			size = (int)flow.getMessageLoad();
-			
-			
-			//Create The List of Result
-			result.setMessageResults(new ArrayList<MessageResult>());
-				
-			
-			
-			//Set the processTime to all the Sender(ConsummerRunnings)
-			for(int i= 0; i<poolnumber;i++){
-				consumerRunning.get(i).setProcessTime(processTime);
-				consumerRunning.get(i).setSize(size);
-			}
-					
-			logger.info("Job Start");
-			int period = (int) ((1/flow.getFrequency())*1000);	
-			final ScheduledFuture<?> scheduler=scheduleThreads(pool, consumerRunning, period);
-			killThreads(scheduler,flow.getStop());
-			try {
-				Thread.sleep((long) (flow.getStop()*1000+flow.getProcessTime()+1000));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			// Run Job
+			runJob(flow,consumerRunning, pool,result );
 			
 			//set Consumer
 			result.setConsumer(consumerNumber);
@@ -272,6 +238,55 @@ public class Consumer {
 		scheduledExecutorService.schedule(new Runnable() {
 			public void run() { scheduler.cancel(true); }
 		}, (stop*1000), TimeUnit.MILLISECONDS);
+	}
+	
+	
+	/*
+	 * Run Job when a flow is received
+	 */
+	public static void runJob(Flow flow, List<ConsumerRunning> consumerRunning,List<Thread> pool, Result result ){
+		//Set the Global variable to 0
+		messageId = 0;
+		index =0;
+		
+		//Get the name of the producer
+		ProducerServiceLocator.producerName = flow.getProducer();
+
+		//Get the processTime
+		int processTime = (int) flow.getProcessTime();
+		
+		//Get The size of the Message
+		int size = (int)flow.getMessageLoad();
+		
+		
+		//Create The List of Result
+		result.setMessageResults(new ArrayList<MessageResult>());
+			
+		
+		
+		//Set the processTime to all the Sender(ConsummerRunnings)
+		for(int i= 0; i<pool.size();i++){
+			consumerRunning.get(i).setProcessTime(processTime);
+			consumerRunning.get(i).setSize(size);
+		}
+				
+		logger.info("Job Start");
+		
+		//Get period in ms
+		int period = (int) ((1/flow.getFrequency())*1000);	
+		
+		//Set the job with the period
+		final ScheduledFuture<?> scheduler=scheduleThreads(pool, consumerRunning, period);
+		
+		//Stop the job
+		killThreads(scheduler,flow.getStop());
+		
+		//Thread need to wait the end of the job
+		try {
+			Thread.sleep((long) (flow.getStop()*1000+flow.getProcessTime()+1000));
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 }
 
