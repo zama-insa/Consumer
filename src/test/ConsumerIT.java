@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import consumer.Consumer;
 
-public class ConsumerIntegrationTest {
+public class ConsumerIT {
 
 	@Test
 	public void testReceiveFlow() throws JMSException, IOException{

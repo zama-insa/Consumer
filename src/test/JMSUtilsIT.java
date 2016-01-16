@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 
-public class JMSUtilsJUnitTest {
+public class JMSUtilsIT {
 	//test if getInstance generate connection,topic,session,msgConsumer and msgProducer
 	@Test
 	public void testGetInstance() throws Exception{
