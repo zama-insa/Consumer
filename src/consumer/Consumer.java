@@ -41,19 +41,24 @@ public class Consumer {
 	static int messageId;
 	
 	public static void initConsumer(int consumer){
-		String input1 ="java.naming.factory.initial = org.apache.activemq.jndi.ActiveMQInitialContextFactory";
-		String input2 = "java.naming.provider.url = tcp://localhost:6161";
-		String input3 ="queue.TEST.FOO = TEST.FOO";
-		String input4 = "topic.TEST.BAR = Consumer."+consumer;
+		String input = createJNDIinput(consumer);
 		try {
 			
 			FileWriter fw = new FileWriter(new File("resources/jndi.properties"));
-			fw.write(input1+"\n"+input2+"\n"+input3+"\n"+input4);
+			fw.write(input);
 			fw.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static String createJNDIinput(int consumer){
+		String input1 ="java.naming.factory.initial = org.apache.activemq.jndi.ActiveMQInitialContextFactory";
+		String input2 = "java.naming.provider.url = tcp://localhost:6161";
+		String input3 ="queue.TEST.FOO = TEST.FOO";
+		String input4 = "topic.TEST.BAR = Consumer."+consumer;
+		return input1+"\n"+input2+"\n"+input3+"\n"+input4;
 	}
 	
 	public static void main(String[] args) throws JMSException, IOException{

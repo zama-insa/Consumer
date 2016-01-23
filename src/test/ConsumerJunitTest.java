@@ -3,6 +3,7 @@ package test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +94,12 @@ public class ConsumerJunitTest {
 		Consumer.waitEndJob(1000);
 		long end = System.currentTimeMillis();
 		assertEquals((end-start),1000,1000);
+	}
+	
+	@Test
+	public void testcreateJNDIinput(){
+		String input = Consumer.createJNDIinput(5);
+		assertEquals(input,"java.naming.factory.initial = org.apache.activemq.jndi.ActiveMQInitialContextFactory\njava.naming.provider.url = tcp://localhost:6161\nqueue.TEST.FOO = TEST.FOO\ntopic.TEST.BAR = Consumer.5");
 	}
 
 	
