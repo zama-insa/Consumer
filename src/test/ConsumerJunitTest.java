@@ -77,6 +77,15 @@ public class ConsumerJunitTest {
 		}
 	}
 	
+	@Test
+	public void testsetConsumerRunning(){
+		List<ConsumerRunning> crs = Consumer.createConsumerRunnings(10, new Result());
+		Consumer.setConsumerRunnings(crs, 10, 10);
+		for(ConsumerRunning cr : crs){
+			assertEquals(cr.getProcessTime(),10);
+			assertEquals(cr.getSize(),10);
+		}
+	}
 
 	
 	

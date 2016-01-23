@@ -46,6 +46,7 @@ public class Consumer {
 		String input3 ="queue.TEST.FOO = TEST.FOO";
 		String input4 = "topic.TEST.BAR = Consumer."+consumer;
 		try {
+			
 			FileWriter fw = new FileWriter(new File("resources/jndi.properties"));
 			fw.write(input1+"\n"+input2+"\n"+input3+"\n"+input4);
 			fw.close();
@@ -75,9 +76,7 @@ public class Consumer {
 		//Gather JMS instance
 		JMSUtils jmsUtils = JMSUtils.getInstance();
 		
-		int processTime;
-		
-		int size;
+
 		
 		Result result = new Result();
 
@@ -265,10 +264,7 @@ public class Consumer {
 		
 		
 		//Set the processTime to all the Sender(ConsummerRunnings)
-		for(int i= 0; i<pool.size();i++){
-			consumerRunning.get(i).setProcessTime(processTime);
-			consumerRunning.get(i).setSize(size);
-		}
+		setConsumerRunnings(consumerRunning, processTime, size);
 				
 		logger.info("Job Start");
 		
@@ -286,6 +282,13 @@ public class Consumer {
 			Thread.sleep((long) (flow.getStop()*1000+flow.getProcessTime()+1000));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public static void setConsumerRunnings(List<ConsumerRunning> crs,int processTime, int size){
+		for(int i= 0; i<crs.size();i++){
+			crs.get(i).setProcessTime(processTime);
+			crs.get(i).setSize(size);
 		}
 	}
 }
