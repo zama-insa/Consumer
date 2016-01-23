@@ -86,6 +86,14 @@ public class ConsumerJunitTest {
 			assertEquals(cr.getSize(),10);
 		}
 	}
+	
+	@Test
+	public void testWaitEndJob(){
+		long start = System.currentTimeMillis();
+		Consumer.waitEndJob(1000);
+		long end = System.currentTimeMillis();
+		assertEquals((end-start),1000,1000);
+	}
 
 	
 	

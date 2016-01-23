@@ -276,15 +276,18 @@ public class Consumer {
 		
 		//Stop the job
 		killThreads(scheduler,flow.getStop());
-		
+		waitEndJob(flow.getStop()*1000+flow.getProcessTime()+1000);
 		//Thread need to wait the end of the job
+		
+	}
+	
+	public static void waitEndJob(double time){
 		try {
-			Thread.sleep((long) (flow.getStop()*1000+flow.getProcessTime()+1000));
+			Thread.sleep((long) (time));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
-	
 	public static void setConsumerRunnings(List<ConsumerRunning> crs,int processTime, int size){
 		for(int i= 0; i<crs.size();i++){
 			crs.get(i).setProcessTime(processTime);

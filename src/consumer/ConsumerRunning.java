@@ -93,7 +93,7 @@ public class ConsumerRunning implements Runnable{
 						//Add MessageResult to Result
 						result.getMessageResults().add(messageResult);
 						//logger.info(result.getMessageResults().toString());
-						//e.printStackTrace();
+						e.printStackTrace();
 					//}
 				}
 				
