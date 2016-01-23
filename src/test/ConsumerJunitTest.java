@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import bean.Flow;
 import bean.Result;
 import consumer.Consumer;
+import consumer.ConsumerRunning;
 
 public class ConsumerJunitTest {
 	//i created a scheduler which works with 2 threads with a period of 100 ms and verify if i could kill it
@@ -44,6 +45,23 @@ public class ConsumerJunitTest {
 		Thread.sleep(3000+toleranceInMs);
 		assertTrue(scheduler.isCancelled());
 	}
+	
+	@Test
+	public void testcreatePoolThread(){
+		List<ConsumerRunning> cRunning  = new ArrayList<ConsumerRunning>();
+		for(int i =0;i<10;i++){
+			cRunning.add(new ConsumerRunning(new Result(), i));
+		}
+		List<Thread> pool= Consumer.createPoolThread(cRunning);
+		assertEquals(pool.size(),10);
+	}
+	
+	@Test
+	public void testCreateConsumerRunning(){
+		List<ConsumerRunning> crs = Consumer.createConsumerRunnings(10, new Result());
+		assertEquals(10, crs.size());
+	}
+	
 	
 	
 	@Test
