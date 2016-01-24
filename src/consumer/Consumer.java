@@ -38,7 +38,7 @@ public class Consumer {
 	
 	private static Properties properties;
 	private static int index;
-	static int messageId;
+	public static int messageId;
 	
 	public static void initConsumer(int consumer){
 		String input = createJNDIinput(consumer);
@@ -68,7 +68,7 @@ public class Consumer {
 		logger.info("Start of the Consumer");
 		
 		
-		properties = getProperties();
+		
 		mapper = new ObjectMapper();
 		
 		int consumerNumber = Integer.parseInt(args[0]);
@@ -140,18 +140,7 @@ public class Consumer {
 		}
 	}
 	
-	public static Properties getProperties() {
-		if (properties == null) {
-			properties = new Properties();
-			try {
-				properties.load(Consumer.class.getClassLoader().getResourceAsStream("consumer.properties"));
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		return properties;
-	}
+	
 	
 	public static void  startThread(List<Thread> pool){
 		for(Thread t : pool){
@@ -220,8 +209,8 @@ public class Consumer {
 					public void run(){
 						synchronized (pool.get(index)) {
 							int poolnumber=pool.size();
-							consumerRunning.get(index).setMessageId(Consumer.messageId);
-							messageId++;
+							
+							setConsumerMessageId(consumerRunning.get(index));
 							//logger.trace("Index Thread" + index);
 							pool.get(index).notify();
 							index = (index+1)%poolnumber;								
@@ -232,6 +221,10 @@ public class Consumer {
 		return scheduler;
 	}
 	
+	public static void setConsumerMessageId(ConsumerRunning cr){
+		cr.setMessageId(messageId);
+		messageId++;
+	}
 	
 	//added by zakaria,hope it wont break ur code arthur :p
 	public static void killThreads(final ScheduledFuture<?> scheduler,int stop){

@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -102,6 +103,13 @@ public class ConsumerJunitTest {
 		assertEquals(input,"java.naming.factory.initial = org.apache.activemq.jndi.ActiveMQInitialContextFactory\njava.naming.provider.url = tcp://localhost:6161\nqueue.TEST.FOO = TEST.FOO\ntopic.TEST.BAR = Consumer.5");
 	}
 
-	
+	@Test
+	public void testSetConsumerRunningMessageId(){
+		Consumer.messageId =0;
+		ConsumerRunning cr = new ConsumerRunning(new Result(), 50);
+		Consumer.setConsumerMessageId(cr);
+		assertEquals(Consumer.messageId,1);
+		assertEquals(cr.getMessageId(),0);
+	}
 	
 }
