@@ -49,6 +49,20 @@
 					<formats>
 						<format>xml</format>
 					</formats>
+					<instrumentation>
+						<ignores>
+							<ignore>bean.*</ignore>
+							<ignore>mq.*</ignore>
+							<ignore>test.*</ignore>
+							<ignore>web.*</ignore>
+						</ignores>
+						<excludes>
+							<exclude>bean/*.class</exclude>
+							<exclude>mq/*.class</exclude>
+							<exclude>test/*.class</exclude>
+							<exclude>web/*.class</exclude>
+						</excludes>
+					</instrumentation>
 				</configuration>
 				<executions>
 					<execution>
@@ -72,7 +86,6 @@
 			<artifactId>activemq-all</artifactId>
 			<version>5.3.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
